@@ -1,7 +1,7 @@
 #pragma once
 
+#include <iostream>
 #include <cstring>
-#include <string>
 using namespace std;
 
 struct Transaccion {
@@ -102,15 +102,21 @@ struct Transaccion {
       strcpy(user_,o.user_);
       strcpy(evento_,o.evento_);
       strcpy(objeto_,o.objeto_);
-      strcpy(estado_,o.fecha_);
+      strcpy(estado_,o.estado_);
       strcpy(comando_, o.comando_);
       
       id_ = o.id_;
-      privilegio_ = o.id_;
+      privilegio_ = o.privilegio_;
     
       return *this; // creo que funciona
   }
 
-  
+  // METODOS
+  void imprimir() {
+      cout << "Fecha: " << this->fecha_ << "    |   Hora: " << this->hora_ << endl;
+      cout << "User: " << this->user_ << "      |   Evento: " << this->evento_ << endl;
+      cout << "Objeto: " << this->objeto_ << "      |   Estado: " << this->estado_ << endl;
+      cout << "Comando: " << this->comando_ << "        |   ID: " << this->id_ << "     |   Privilegio: " << this->privilegio_ << endl;
+  }
   
 };
