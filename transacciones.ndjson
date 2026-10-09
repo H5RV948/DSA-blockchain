@@ -1,0 +1,40 @@
+{"id":1,"fecha":"2026-10-01","hora":"08:01:12","user":"admin","evento":"LOGIN","objeto":"sistema","estado":"OTORGADO","comando":"login admin","privilegio":0}
+{"id":2,"fecha":"2026-10-01","hora":"08:03:45","user":"admin","evento":"CREAR_USUARIO","objeto":"usuario:jperez","estado":"OTORGADO","comando":"useradd jperez","privilegio":0}
+{"id":3,"fecha":"2026-10-01","hora":"08:04:10","user":"admin","evento":"CREAR_USUARIO","objeto":"usuario:mlopez","estado":"OTORGADO","comando":"useradd mlopez","privilegio":0}
+{"id":4,"fecha":"2026-10-01","hora":"08:15:33","user":"jperez","evento":"LOGIN","objeto":"sistema","estado":"OTORGADO","comando":"login jperez","privilegio":1}
+{"id":5,"fecha":"2026-10-01","hora":"08:17:02","user":"jperez","evento":"CREAR_ARCHIVO","objeto":"/home/jperez/reporte_q3.docx","estado":"OTORGADO","comando":"touch reporte_q3.docx","privilegio":1}
+{"id":6,"fecha":"2026-10-01","hora":"08:20:48","user":"mlopez","evento":"LOGIN","objeto":"sistema","estado":"DENEGADO","comando":"login mlopez","privilegio":1}
+{"id":7,"fecha":"2026-10-01","hora":"08:21:05","user":"mlopez","evento":"LOGIN","objeto":"sistema","estado":"OTORGADO","comando":"login mlopez","privilegio":1}
+{"id":8,"fecha":"2026-10-01","hora":"08:30:19","user":"mlopez","evento":"LEER_ARCHIVO","objeto":"/finanzas/presupuesto_2026.xlsx","estado":"DENEGADO","comando":"cat presupuesto_2026.xlsx","privilegio":1}
+{"id":9,"fecha":"2026-10-01","hora":"08:45:00","user":"jperez","evento":"MODIFICAR_ARCHIVO","objeto":"/home/jperez/reporte_q3.docx","estado":"OTORGADO","comando":"edit reporte_q3.docx","privilegio":1}
+{"id":10,"fecha":"2026-10-01","hora":"09:02:37","user":"admin","evento":"CAMBIAR_PERMISOS","objeto":"/finanzas/presupuesto_2026.xlsx","estado":"OTORGADO","comando":"chmod 640 presupuesto_2026.xlsx","privilegio":0}
+{"id":11,"fecha":"2026-10-01","hora":"09:10:14","user":"jperez","evento":"ELIMINAR_ARCHIVO","objeto":"/sistema/config.ini","estado":"DENEGADO","comando":"rm config.ini","privilegio":1}
+{"id":12,"fecha":"2026-10-01","hora":"09:25:51","user":"mlopez","evento":"CREAR_DIRECTORIO","objeto":"/home/mlopez/proyectos","estado":"OTORGADO","comando":"mkdir proyectos","privilegio":1}
+{"id":13,"fecha":"2026-10-01","hora":"10:00:00","user":"admin","evento":"RESPALDO","objeto":"/finanzas","estado":"OTORGADO","comando":"backup /finanzas","privilegio":0}
+{"id":14,"fecha":"2026-10-01","hora":"10:12:44","user":"rgarcia","evento":"LOGIN","objeto":"sistema","estado":"DENEGADO","comando":"login rgarcia","privilegio":1}
+{"id":15,"fecha":"2026-10-01","hora":"10:13:02","user":"rgarcia","evento":"LOGIN","objeto":"sistema","estado":"DENEGADO","comando":"login rgarcia","privilegio":1}
+{"id":16,"fecha":"2026-10-01","hora":"10:13:20","user":"rgarcia","evento":"LOGIN","objeto":"sistema","estado":"DENEGADO","comando":"login rgarcia","privilegio":1}
+{"id":17,"fecha":"2026-10-01","hora":"10:13:21","user":"sistema","evento":"BLOQUEAR_USUARIO","objeto":"usuario:rgarcia","estado":"OTORGADO","comando":"lock rgarcia","privilegio":0}
+{"id":18,"fecha":"2026-10-01","hora":"10:40:09","user":"admin","evento":"DESBLOQUEAR_USUARIO","objeto":"usuario:rgarcia","estado":"OTORGADO","comando":"unlock rgarcia","privilegio":0}
+{"id":19,"fecha":"2026-10-01","hora":"10:42:30","user":"rgarcia","evento":"LOGIN","objeto":"sistema","estado":"OTORGADO","comando":"login rgarcia","privilegio":1}
+{"id":20,"fecha":"2026-10-01","hora":"11:05:16","user":"rgarcia","evento":"DESCARGAR_ARCHIVO","objeto":"/ventas/clientes.csv","estado":"OTORGADO","comando":"download clientes.csv","privilegio":1}
+{"id":21,"fecha":"2026-10-01","hora":"11:30:58","user":"jperez","evento":"SUBIR_ARCHIVO","objeto":"/compartido/reporte_q3.docx","estado":"OTORGADO","comando":"upload reporte_q3.docx","privilegio":1}
+{"id":22,"fecha":"2026-10-01","hora":"12:00:03","user":"mlopez","evento":"CAMBIAR_PASSWORD","objeto":"usuario:mlopez","estado":"OTORGADO","comando":"passwd","privilegio":1}
+{"id":23,"fecha":"2026-10-01","hora":"12:15:27","user":"mlopez","evento":"CREAR_USUARIO","objeto":"usuario:invitado","estado":"DENEGADO","comando":"useradd invitado","privilegio":1}
+{"id":24,"fecha":"2026-10-01","hora":"13:02:40","user":"jperez","evento":"LOGOUT","objeto":"sistema","estado":"OTORGADO","comando":"logout","privilegio":1}
+{"id":25,"fecha":"2026-10-01","hora":"13:45:11","user":"admin","evento":"INSTALAR_SOFTWARE","objeto":"paquete:antivirus-2.4","estado":"OTORGADO","comando":"install antivirus-2.4","privilegio":0}
+{"id":26,"fecha":"2026-10-01","hora":"14:10:22","user":"rgarcia","evento":"INSTALAR_SOFTWARE","objeto":"paquete:juego.exe","estado":"DENEGADO","comando":"install juego.exe","privilegio":1}
+{"id":27,"fecha":"2026-10-01","hora":"14:33:05","user":"mlopez","evento":"RENOMBRAR_ARCHIVO","objeto":"/home/mlopez/proyectos/borrador.txt","estado":"OTORGADO","comando":"mv borrador.txt plan.txt","privilegio":1}
+{"id":28,"fecha":"2026-10-01","hora":"15:00:00","user":"admin","evento":"CONSULTAR_LOGS","objeto":"/var/log/auth.log","estado":"OTORGADO","comando":"cat auth.log","privilegio":0}
+{"id":29,"fecha":"2026-10-01","hora":"15:20:47","user":"rgarcia","evento":"ELIMINAR_ARCHIVO","objeto":"/ventas/clientes.csv","estado":"DENEGADO","comando":"rm clientes.csv","privilegio":1}
+{"id":30,"fecha":"2026-10-01","hora":"16:05:39","user":"mlopez","evento":"LOGOUT","objeto":"sistema","estado":"OTORGADO","comando":"logout","privilegio":1}
+{"id":31,"fecha":"2026-10-01","hora":"17:30:12","user":"rgarcia","evento":"LOGOUT","objeto":"sistema","estado":"OTORGADO","comando":"logout","privilegio":1}
+{"id":32,"fecha":"2026-10-01","hora":"18:00:00","user":"admin","evento":"ELIMINAR_USUARIO","objeto":"usuario:invitado_temp","estado":"OTORGADO","comando":"userdel invitado_temp","privilegio":0}
+{"id":33,"fecha":"2026-10-02","hora":"02:14:55","user":"desconocido","evento":"LOGIN","objeto":"sistema","estado":"DENEGADO","comando":"login root","privilegio":-1}
+{"id":34,"fecha":"2026-10-02","hora":"02:15:03","user":"desconocido","evento":"LOGIN","objeto":"sistema","estado":"DENEGADO","comando":"login admin","privilegio":-1}
+{"id":35,"fecha":"2026-10-02","hora":"07:58:20","user":"admin","evento":"LOGIN","objeto":"sistema","estado":"OTORGADO","comando":"login admin","privilegio":0}
+{"id":36,"fecha":"2026-10-02","hora":"08:05:44","user":"admin","evento":"BLOQUEAR_IP","objeto":"ip:185.22.4.91","estado":"OTORGADO","comando":"block 185.22.4.91","privilegio":0}
+{"id":37,"fecha":"2026-10-02","hora":"08:20:31","user":"jperez","evento":"LOGIN","objeto":"sistema","estado":"OTORGADO","comando":"login jperez","privilegio":1}
+{"id":38,"fecha":"2026-10-02","hora":"08:35:16","user":"jperez","evento":"COPIAR_ARCHIVO","objeto":"/compartido/reporte_q3.docx","estado":"OTORGADO","comando":"cp reporte_q3.docx reporte_q3_v2.docx","privilegio":1}
+{"id":39,"fecha":"2026-10-02","hora":"09:12:08","user":"jperez","evento":"CAMBIAR_PERMISOS","objeto":"/sistema/config.ini","estado":"DENEGADO","comando":"chmod 777 config.ini","privilegio":1}
+{"id":40,"fecha":"2026-10-02","hora":"09:30:00","user":"admin","evento":"RESTAURAR_RESPALDO","objeto":"/finanzas","estado":"OTORGADO","comando":"restore /finanzas","privilegio":0}
