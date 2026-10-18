@@ -25,9 +25,9 @@ struct EncabezadoBloque {
     // Inicializa height y txCount en 0.
     // Inicializa prevHash y blockHash con "0000000000000000".
     // --------------------------------------------------------
-    EncabezadoBloque() {
-        // TODO: implementar
-        // Sugerencia: usar strcpy para inicializar los hashes
+    EncabezadoBloque() : height(0), txCount(0) {
+        strcpy(prevHash, "0000000000000000");
+        strcpy(blockHash, "0000000000000000");
     }
 
     // --------------------------------------------------------
@@ -38,8 +38,11 @@ struct EncabezadoBloque {
     //   prev — hash del bloque anterior (cadena de hasta 64 chars)
     //   own  — hash propio del bloque   (cadena de hasta 64 chars)
     // --------------------------------------------------------
-    EncabezadoBloque(int h, int txc, const char* prev, const char* own) {
-        // TODO: implementar
-        // Sugerencia: usar strncpy y asegurarse de terminar con '\0'
+    EncabezadoBloque(int h, int txc, const char* prev, const char* own)
+        : height(h), txCount(txc) {
+        strncpy(prevHash, prev, 64);
+        prevHash[64] = '\0';
+        strncpy(blockHash, own, 64);
+        blockHash[64] = '\0';
     }
 };
