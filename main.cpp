@@ -68,7 +68,7 @@ Transaccion* crearTxDesdeLinea(const char* linea) {
     return tx;
 }
 
-// Crea una transacción nueva (para la Mempool) y la registra
+// Crea una transacción nueva y la registra
 Transaccion* crearTx(const char* fecha, const char* hora, const char* user, const char* evento,
                      const char* objeto, const char* estado, const char* comando, int id, int privilegio) {
     Transaccion* tx = new Transaccion(fecha, hora, user, evento, objeto, estado, comando, id, privilegio);
@@ -122,7 +122,6 @@ bool cargarCadena(const char* ruta, ListaEnlazada<Bloque>& cadena) {
         }
     }
 
-    // El último bloque del archivo también se inserta
     if (hayBloque) {
         if (actual.encabezado.txCount != txEsperadas)
             cout << "AVISO: bloque #" << actual.encabezado.height << " declara tx_count="

@@ -5,19 +5,14 @@
 using namespace std;
 
 struct Transaccion {
-  char *fecha_, *hora_, *user_, *evento_, *objeto_, *estado_, *comando_; /* 
-      - objeto es sobre lo que se hizo el comando
-      - estado es si fue otorgado o denegado
-      - evento fue lo que paso
-      */
-  int id_, privilegio_; /*
-     - privilegio lo puse aqui porque pienso que lo vamos a definir como: 0 -> admin, 1-> user (algo asi)
-     - el id es el numero de la transaccion (o del usuario lo podemos ver)
-      */
+  char *fecha_, *hora_, *user_, *evento_, *objeto_, *estado_, *comando_; 
+
+  int id_, privilegio_; 
+
 
   // Constructor por defecto
   Transaccion() : id_(-1), privilegio_(-1) {
-      fecha_ = new char[1]{'\0'}; // '\0' -> caracter nulo (indica el final de una cadena txt)
+      fecha_ = new char[1]{'\0'}; 
       hora_ = new char[1]{'\0'};
       user_ = new char[1]{'\0'};
       evento_ = new char[1]{'\0'};

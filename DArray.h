@@ -1,10 +1,6 @@
 #pragma once
 #include <iostream>
 
-// DArray<T> — arreglo dinámico genérico
-// Módulo 1 del proyecto integrador Mini-Blockchain
-// Versión actualizada con asignarEn() y fijarTamano() para Cola circular
-
 template <typename T>
 class DArray {
 public:
@@ -33,7 +29,7 @@ public:
 
     ~DArray() { delete[] datos; }
 
-    // Agrega al final; redimensiona x2 si es necesario
+    // Agrega al final
     void agregar(const T& valor) {
         if (tamano == capacidad) redimensionar();
         datos[tamano++] = valor;
@@ -43,10 +39,8 @@ public:
     T& obtenerEn(int indice) { return datos[indice]; }
     const T& obtenerEn(int indice) const { return datos[indice]; }
 
-    // Escritura directa en posición (para Cola circular)
     void asignarEn(int indice, const T& valor) { datos[indice] = valor; }
 
-    // Fija el tamaño lógico sin agregar elementos (para Cola circular)
     void fijarTamano(int nuevoTamano) { tamano = nuevoTamano; }
 
     int tamanoActual() const { return tamano; }
