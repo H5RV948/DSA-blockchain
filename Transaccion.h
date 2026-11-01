@@ -5,6 +5,7 @@
 using namespace std;
 
 struct Transaccion {
+  char *txId_;   // identificador unico en texto: clave de las TablaHash (Entrega 3)
   char *fecha_, *hora_, *user_, *evento_, *objeto_, *estado_, *comando_; 
 
   int id_, privilegio_; 
@@ -12,6 +13,7 @@ struct Transaccion {
 
   // Constructor por defecto
   Transaccion() : id_(-1), privilegio_(-1) {
+      txId_ = new char[1]{'\0'};
       fecha_ = new char[1]{'\0'}; 
       hora_ = new char[1]{'\0'};
       user_ = new char[1]{'\0'};
@@ -22,8 +24,9 @@ struct Transaccion {
   }
   
   // Constructor
-  Transaccion(const char* fecha, const char* hora, const char* user, const char* evento, const char* objeto, const char* estado, const char* comando, int id, int privilegio) : 
+  Transaccion(const char* txId, const char* fecha, const char* hora, const char* user, const char* evento, const char* objeto, const char* estado, const char* comando, int id, int privilegio) : 
     id_(id), privilegio_(privilegio) {
+        txId_ = new char[strlen(txId) + 1];
         fecha_ = new char[strlen(fecha) + 1];
         hora_ = new char[strlen(hora) + 1];
         user_ = new char[strlen(user) + 1];
@@ -32,6 +35,7 @@ struct Transaccion {
         estado_ = new char[strlen(estado) + 1];
         comando_ = new char[strlen(comando) + 1];
   
+        strcpy(txId_, txId);
         strcpy(fecha_, fecha);
         strcpy(hora_, hora);
         strcpy(user_, user);
@@ -44,6 +48,7 @@ struct Transaccion {
     // Constructor de copia
     Transaccion(const Transaccion &o) :
       id_(o.id_), privilegio_(o.privilegio_) {
+          txId_ = new char[strlen(o.txId_) + 1];
           fecha_ = new char[strlen(o.fecha_) + 1];
           hora_ = new char[strlen(o.hora_) + 1];
           user_ = new char[strlen(o.user_) + 1];
@@ -52,6 +57,7 @@ struct Transaccion {
           estado_ = new char[strlen(o.estado_) + 1];
           comando_ = new char[strlen(o.comando_) + 1];
     
+          strcpy(txId_, o.txId_);
           strcpy(fecha_, o.fecha_);
           strcpy(hora_, o.hora_);
           strcpy(user_, o.user_);
@@ -63,6 +69,7 @@ struct Transaccion {
 
   // Destructor 
   ~Transaccion() {
+      delete[] txId_;
       delete[] fecha_;
       delete[] hora_;
       delete[] user_;
@@ -76,6 +83,7 @@ struct Transaccion {
   Transaccion& operator=(const Transaccion &o) {
       if (this == &o) return *this;
 
+      delete[] txId_;
       delete[] fecha_;
       delete[] hora_;
       delete[] user_;
@@ -84,6 +92,7 @@ struct Transaccion {
       delete[] estado_;
       delete[] comando_;
 
+      txId_ = new char[strlen(o.txId_) + 1];
       fecha_ = new char[strlen(o.fecha_) + 1];
       hora_ = new char[strlen(o.hora_) + 1];
       user_ = new char[strlen(o.user_) + 1];
@@ -92,6 +101,7 @@ struct Transaccion {
       estado_ = new char[strlen(o.estado_) + 1];
       comando_ = new char[strlen(o.comando_) + 1];
 
+      strcpy(txId_,o.txId_);
       strcpy(fecha_,o.fecha_);
       strcpy(hora_,o.hora_);
       strcpy(user_,o.user_);
@@ -108,6 +118,7 @@ struct Transaccion {
 
   // METODOS
   void imprimir() {
+      cout << "TxId: " << this->txId_ << endl;
       cout << "Fecha: " << this->fecha_ << "    |   Hora: " << this->hora_ << endl;
       cout << "User: " << this->user_ << "      |   Evento: " << this->evento_ << endl;
       cout << "Objeto: " << this->objeto_ << "      |   Estado: " << this->estado_ << endl;
