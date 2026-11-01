@@ -52,7 +52,8 @@ int extraerEntero(const char* linea, const char* clave) {
 
 
 Transaccion* crearTxDesdeLinea(const char* linea) {
-    char fecha[32], hora[32], user[64], evento[64], objeto[128], estado[32], comando[128];
+    char txId[64], fecha[32], hora[32], user[64], evento[64], objeto[128], estado[32], comando[128];
+    extraerCadena(linea, "tx_id",   txId,    64);
     extraerCadena(linea, "fecha",   fecha,   32);
     extraerCadena(linea, "hora",    hora,    32);
     extraerCadena(linea, "user",    user,    64);
@@ -63,15 +64,15 @@ Transaccion* crearTxDesdeLinea(const char* linea) {
     int id         = extraerEntero(linea, "id");
     int privilegio = extraerEntero(linea, "privilegio");
 
-    Transaccion* tx = new Transaccion(fecha, hora, user, evento, objeto, estado, comando, id, privilegio);
+    Transaccion* tx = new Transaccion(txId, fecha, hora, user, evento, objeto, estado, comando, id, privilegio);
     todasTx.agregar(tx);
     return tx;
 }
 
 // Crea una transacción nueva y la registra
-Transaccion* crearTx(const char* fecha, const char* hora, const char* user, const char* evento,
+Transaccion* crearTx(const char* txId, const char* fecha, const char* hora, const char* user, const char* evento,
                      const char* objeto, const char* estado, const char* comando, int id, int privilegio) {
-    Transaccion* tx = new Transaccion(fecha, hora, user, evento, objeto, estado, comando, id, privilegio);
+    Transaccion* tx = new Transaccion(txId, fecha, hora, user, evento, objeto, estado, comando, id, privilegio);
     todasTx.agregar(tx);
     return tx;
 }
@@ -137,7 +138,7 @@ void imprimirBloque(Bloque& b) {
 }
 
 void imprimirTx(Transaccion*& tx) {
-    cout << "    TX [" << tx->id_ << "] " << tx->evento_ << " | user=" << tx->user_
+    cout << "    TX [" << tx->txId_ << "] " << tx->evento_ << " | user=" << tx->user_
          << " | objeto=" << tx->objeto_ << " | estado=" << tx->estado_ << endl;
 }
 
@@ -208,13 +209,13 @@ int main() {
 
     // Crear transacciones de prueba 
     Transaccion* pendientes[7];
-    pendientes[0] = crearTx("2026-10-02", "10:00:05", "jperez",  "LOGIN",          "sistema",                 "OTORGADO", "login jperez",            43, 0);
-    pendientes[1] = crearTx("2026-10-02", "10:02:17", "jperez",  "LEER_ARCHIVO",   "/home/jperez/notas.txt",  "OTORGADO", "cat notas.txt",           44, 0);
-    pendientes[2] = crearTx("2026-10-02", "10:05:40", "mlopez",  "ELIMINAR_ARCHIVO","/finanzas/balance.xlsx",  "DENEGADO", "rm balance.xlsx",         45, 0);
-    pendientes[3] = crearTx("2026-10-02", "10:06:02", "admin",   "BLOQUEAR_USUARIO","usuario:mlopez",          "OTORGADO", "usermod -L mlopez",       46, 2);
-    pendientes[4] = crearTx("2026-10-02", "10:09:33", "rgarcia", "LOGIN",          "sistema",                 "DENEGADO", "login rgarcia",           47, 0);
-    pendientes[5] = crearTx("2026-10-02", "10:10:01", "rgarcia", "LOGIN",          "sistema",                 "OTORGADO", "login rgarcia",           48, 0);
-    pendientes[6] = crearTx("2026-10-02", "10:12:45", "admin",   "LOGOUT",         "sistema",                 "OTORGADO", "logout admin",            49, 2);
+    pendientes[0] = crearTx("TX-00000043", "2026-10-02", "10:00:05", "jperez",  "LOGIN",          "sistema",                 "OTORGADO", "login jperez",            43, 0);
+    pendientes[1] = crearTx("TX-00000044", "2026-10-02", "10:02:17", "jperez",  "LEER_ARCHIVO",   "/home/jperez/notas.txt",  "OTORGADO", "cat notas.txt",           44, 0);
+    pendientes[2] = crearTx("TX-00000045", "2026-10-02", "10:05:40", "mlopez",  "ELIMINAR_ARCHIVO","/finanzas/balance.xlsx",  "DENEGADO", "rm balance.xlsx",         45, 0);
+    pendientes[3] = crearTx("TX-00000046", "2026-10-02", "10:06:02", "admin",   "BLOQUEAR_USUARIO","usuario:mlopez",          "OTORGADO", "usermod -L mlopez",       46, 2);
+    pendientes[4] = crearTx("TX-00000047", "2026-10-02", "10:09:33", "rgarcia", "LOGIN",          "sistema",                 "DENEGADO", "login rgarcia",           47, 0);
+    pendientes[5] = crearTx("TX-00000048", "2026-10-02", "10:10:01", "rgarcia", "LOGIN",          "sistema",                 "OTORGADO", "login rgarcia",           48, 0);
+    pendientes[6] = crearTx("TX-00000049", "2026-10-02", "10:12:45", "admin",   "LOGOUT",         "sistema",                 "OTORGADO", "logout admin",            49, 2);
 
     // Encolar 5 transacciones
     cout << "Encolando transacciones:" << endl;
