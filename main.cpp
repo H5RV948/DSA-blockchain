@@ -48,14 +48,17 @@ bool buscarBloquePorAltura(ListaEnlazada<Bloque>& cadena, int altura, Bloque& de
     return encontrado;
 }
 
-// Solo encola si el txId no se ha procesado antes
+// Solo encola si el txId no se ha procesado antes.
+// Al encolar se marca en txExiste (pendiente: existe pero aun no tiene bloque en txLedger)
 bool encolarSiNoDuplicada(Cola<Transaccion*>& mempool, Transaccion* tx) {
     bool* existe = txExiste.buscar(tx->txId_);   // nullptr si nunca se ha visto
     if (existe != nullptr && *existe) {
         cout << "  [ERROR] txId duplicado: " << tx->txId_ << " — transacción rechazada" << endl;
         return false;
     }
-    return mempool.encolar(tx);
+    if (!mempool.encolar(tx)) return false;   // mempool llena: no se marca
+    txExiste.insertar(tx->txId_, true);
+    return true;
 }
 
 // Agrega el bloque como nuevo tip e indexa sus transacciones
@@ -360,6 +363,10 @@ int main() {
     if (encolarSiNoDuplicada(mempool2, nueva))
         cout << "4. Encolada en la mempool (" << mempool2.tamanoActual() << "/"
              << mempool2.capacidadActual() << ")" << endl;
+    cout << "   Pendiente: txExiste=" << (txExiste.buscar(nueva->txId_) != nullptr ? "SI" : "NO")
+         << " | consultarBloque -> " << consultarBloque(nueva->txId_) << endl;
+    cout << "   Reenvio mientras sigue en la mempool:" << endl;
+    encolarSiNoDuplicada(mempool2, nueva);
 
     Bloque tip2 = cadena.obtenerEn(0);
     Bloque nuevoBloque(EncabezadoBloque(tip2.encabezado.height + 1, 0,
