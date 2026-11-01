@@ -5,7 +5,7 @@
 using namespace std;
 
 struct Transaccion {
-  char *txId_;   // identificador unico en texto: clave de las TablaHash (Entrega 3)
+  char *txId_;   // identificador unico en texto: clave de las TablaHash para Entrega 3
   char *fecha_, *hora_, *user_, *evento_, *objeto_, *estado_, *comando_; 
 
   int id_, privilegio_; 
