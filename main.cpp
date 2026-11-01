@@ -9,6 +9,7 @@
 #include "ListaEnlazada.h"
 #include "Pila.h"
 #include "Cola.h"
+#include "TablaHash.h"
 using namespace std;
 
 const char* ARCHIVO_NDJSON  = "transacciones.ndjson";
@@ -18,6 +19,50 @@ const int   ALTURA_FALLA    = 3;
 
 // Registro de todas las transacciones 
 DArray<Transaccion*> todasTx;
+
+// Indices sobre la cadena
+TablaHash<bool> txExiste;   // txId -> true
+TablaHash<int>  txLedger;   // txId -> altura del bloque
+
+// Inserta txId en ambos indices
+void indexarTx(Transaccion* tx, int altura) {
+    txExiste.insertar(tx->txId_, true);
+    txLedger.insertar(tx->txId_, altura);
+}
+
+// Altura del bloque que contiene txId, o -1 si no existe
+int consultarBloque(const char* txId) {
+    int* altura = txLedger.buscar(txId);
+    return (altura == nullptr) ? -1 : *altura;
+}
+
+// Recorre la cadena buscando el bloque con esa altura
+bool buscarBloquePorAltura(ListaEnlazada<Bloque>& cadena, int altura, Bloque& destino) {
+    bool encontrado = false;
+    cadena.paraCada([&](Bloque& b) {
+        if (!encontrado && b.encabezado.height == altura) {
+            destino = b;
+            encontrado = true;
+        }
+    });
+    return encontrado;
+}
+
+// Solo encola si el txId no se ha procesado antes
+bool encolarSiNoDuplicada(Cola<Transaccion*>& mempool, Transaccion* tx) {
+    if (txExiste.buscar(tx->txId_) != nullptr) {
+        cout << "  [ERROR] txId duplicado: " << tx->txId_ << " — transacción rechazada" << endl;
+        return false;
+    }
+    return mempool.encolar(tx);
+}
+
+// Agrega el bloque como nuevo tip e indexa sus transacciones
+void confirmarBloque(ListaEnlazada<Bloque>& cadena, Bloque& b) {
+    for (int i = 0; i < b.txList.tamanoActual(); i++)
+        indexarTx(b.txList.obtenerEn(i), b.encabezado.height);
+    cadena.agregarInicio(b);
+}
 
 void extraerCadena(const char* linea, const char* clave, char* destino, int tam) {
     char patron[64];
@@ -119,7 +164,9 @@ bool cargarCadena(const char* ruta, ListaEnlazada<Bloque>& cadena) {
                 cout << "AVISO: transaccion sin bloque, se ignora" << endl;
                 continue;
             }
-            actual.agregarTx(crearTxDesdeLinea(linea));
+            Transaccion* tx = crearTxDesdeLinea(linea);
+            actual.agregarTx(tx);
+            indexarTx(tx, actual.encabezado.height);
         }
     }
 
@@ -173,11 +220,15 @@ void separador(const char* titulo) {
 int main() {
     ListaEnlazada<Bloque> cadena;
     
-    separador("CARGA DEL NDJSON EN ListaEnlazada<Bloque>");
+    separador("CARGA DEL NDJSON EN ListaEnlazada<Bloque> + INDICES HASH");
     if (!cargarCadena(ARCHIVO_NDJSON, cadena)) return 1;
 
     cout << "Bloques cargados: " << cadena.tamanoActual()
          << " | Transacciones cargadas: " << todasTx.tamanoActual() << endl;
+    cout << "Indexadas en txExiste: " << txExiste.tamano()
+         << " (cap=" << txExiste.capacidad() << ", fc=" << txExiste.factorCarga() << ")" << endl;
+    cout << "Indexadas en txLedger: " << txLedger.tamano()
+         << " (cap=" << txLedger.capacidad() << ", fc=" << txLedger.factorCarga() << ")" << endl;
     cout << "Recorrido con paraCada() (del tip al genesis):" << endl << endl;
     cadena.paraCada(imprimirBloque);
 
@@ -220,7 +271,7 @@ int main() {
     // Encolar 5 transacciones
     cout << "Encolando transacciones:" << endl;
     for (int i = 0; i < 5; i++) {
-        bool ok = mempool.encolar(pendientes[i]);
+        bool ok = encolarSiNoDuplicada(mempool, pendientes[i]);
         cout << "  encolar TX [" << pendientes[i]->id_ << "] " << pendientes[i]->evento_
              << (ok ? "  -> aceptada" : "  -> RECHAZADA") << "  (" << mempool.tamanoActual()
              << "/" << mempool.capacidadActual() << ")" << endl;
@@ -228,7 +279,7 @@ int main() {
 
     // Encolar con la Mempool llena
     cout << endl << "Mempool llena? " << (mempool.estaLlena() ? "SI" : "NO") << endl;
-    bool aceptada = mempool.encolar(pendientes[5]);
+    bool aceptada = encolarSiNoDuplicada(mempool, pendientes[5]);
     cout << "  encolar TX [" << pendientes[5]->id_ << "] " << pendientes[5]->evento_
          << (aceptada ? "  -> aceptada" : "  -> RECHAZADA (mempool llena)") << endl;
 
@@ -249,7 +300,7 @@ int main() {
     //
     cout << endl << "Segunda vuelta de la cola circular (reutiliza posiciones liberadas):" << endl;
     for (int i = 5; i < 7; i++) {
-        bool ok = mempool.encolar(pendientes[i]);
+        bool ok = encolarSiNoDuplicada(mempool, pendientes[i]);
         cout << "  encolar TX [" << pendientes[i]->id_ << "] " << pendientes[i]->evento_
              << (ok ? "  -> aceptada" : "  -> RECHAZADA") << "  (" << mempool.tamanoActual()
              << "/" << mempool.capacidadActual() << ")" << endl;
@@ -263,11 +314,71 @@ int main() {
     }
 
     // El bloque candidato se confirma y se vuelve el nuevo tip
-    cout << endl << "Bloque candidato confirmado y agregado con agregarInicio():" << endl;
+    cout << endl << "Bloque candidato confirmado, indexado y agregado con agregarInicio():" << endl;
     candidato.imprimir();
-    cadena.agregarInicio(candidato);
+    confirmarBloque(cadena, candidato);
     cout << "Bloques en la cadena: " << cadena.tamanoActual()
-         << " | Nuevo tip: #" << cadena.obtenerEn(0).encabezado.height << endl;
+         << " | Nuevo tip: #" << cadena.obtenerEn(0).encabezado.height
+         << " | txIds indexados: " << txExiste.tamano() << endl;
+
+    separador("INTENTO DE DUPLICADO: txExiste.buscar(txId)");
+    // Caso 1: txId que viene del NDJSON, con datos inventados distintos
+    Transaccion* dupNdjson = crearTx("TX-00000010", "2026-10-03", "11:00:00", "intruso", "LOGIN",
+                                     "sistema", "OTORGADO", "login intruso", 10, 0);
+    // Caso 2: txId que no esta en el NDJSON, pero ya se confirmo en el bloque candidato
+    Transaccion* dupNuevo  = crearTx("TX-00000045", "2026-10-03", "11:05:00", "mlopez", "ELIMINAR_ARCHIVO",
+                                     "/finanzas/balance.xlsx", "DENEGADO", "rm balance.xlsx", 45, 0);
+    Cola<Transaccion*> mempool2(CAPACIDAD_MEMPOOL);
+    cout << "Reenviando TX [" << dupNdjson->txId_ << "] (ya existe en el NDJSON):" << endl;
+    encolarSiNoDuplicada(mempool2, dupNdjson);
+    cout << "Reenviando TX [" << dupNuevo->txId_ << "] (confirmada en el bloque #"
+         << consultarBloque(dupNuevo->txId_) << ", no en el NDJSON):" << endl;
+    encolarSiNoDuplicada(mempool2, dupNuevo);
+    cout << "Transacciones en la mempool despues de los intentos: " << mempool2.tamanoActual() << endl;
+
+    separador("CONSULTA AL LEDGER: consultarBloque(txId)");
+    const char* consultas[2] = { "TX-00000020", "TX-99999999" };
+    for (int i = 0; i < 2; i++) {
+        int altura = consultarBloque(consultas[i]);
+        cout << "consultarBloque(\"" << consultas[i] << "\") -> " << altura << endl;
+        Bloque encontrado;
+        if (altura != -1 && buscarBloquePorAltura(cadena, altura, encontrado)) {
+            encontrado.imprimir();
+        } else {
+            cout << "  txId " << consultas[i] << " no encontrado en el ledger" << endl;
+        }
+        cout << endl;
+    }
+
+    separador("FLUJO COMPLETO: Mempool -> bloque -> indice");
+    Transaccion* nueva = crearTx("TX-00000050", "2026-10-02", "10:20:00", "jperez", "LOGOUT",
+                                 "sistema", "OTORGADO", "logout jperez", 50, 0);
+    cout << "1. Nueva TX [" << nueva->txId_ << "] creada" << endl;
+    cout << "2. consultarBloque antes de confirmar -> " << consultarBloque(nueva->txId_) << endl;
+    cout << "3. Es duplicado? " << (txExiste.buscar(nueva->txId_) ? "SI" : "NO") << endl;
+    if (encolarSiNoDuplicada(mempool2, nueva))
+        cout << "4. Encolada en la mempool (" << mempool2.tamanoActual() << "/"
+             << mempool2.capacidadActual() << ")" << endl;
+
+    Bloque tip2 = cadena.obtenerEn(0);
+    Bloque nuevoBloque(EncabezadoBloque(tip2.encabezado.height + 1, 0,
+                                        tip2.encabezado.blockHash, "0000000000000000"));
+    while (!mempool2.estaVacia()) {
+        nuevoBloque.agregarTx(mempool2.frenteActual());
+        mempool2.desencolar();
+    }
+    confirmarBloque(cadena, nuevoBloque);
+    cout << "5. Confirmada en el bloque #" << nuevoBloque.encabezado.height
+         << " e insertada en txExiste y txLedger" << endl;
+
+    int alturaNueva = consultarBloque(nueva->txId_);
+    cout << "6. consultarBloque(\"" << nueva->txId_ << "\") -> " << alturaNueva << endl;
+    Bloque verificado;
+    if (buscarBloquePorAltura(cadena, alturaNueva, verificado)) verificado.imprimir();
+    cout << "7. Reintento de la misma TX:" << endl;
+    encolarSiNoDuplicada(mempool2, nueva);
+    cout << endl << "Metrica: " << txExiste.tamano() << " transacciones indexadas de "
+         << cadena.tamanoActual() << " bloques, busqueda O(1) promedio" << endl;
 
     separador("ROLLBACK: validacion hacia atras con Pila<int>");
     cout << "Falla simulada en el bloque #" << ALTURA_FALLA << endl;
