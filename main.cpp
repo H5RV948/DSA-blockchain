@@ -50,7 +50,8 @@ bool buscarBloquePorAltura(ListaEnlazada<Bloque>& cadena, int altura, Bloque& de
 
 // Solo encola si el txId no se ha procesado antes
 bool encolarSiNoDuplicada(Cola<Transaccion*>& mempool, Transaccion* tx) {
-    if (txExiste.buscar(tx->txId_) != nullptr) {
+    bool* existe = txExiste.buscar(tx->txId_);   // nullptr si nunca se ha visto
+    if (existe != nullptr && *existe) {
         cout << "  [ERROR] txId duplicado: " << tx->txId_ << " — transacción rechazada" << endl;
         return false;
     }
@@ -355,7 +356,7 @@ int main() {
                                  "sistema", "OTORGADO", "logout jperez", 50, 0);
     cout << "1. Nueva TX [" << nueva->txId_ << "] creada" << endl;
     cout << "2. consultarBloque antes de confirmar -> " << consultarBloque(nueva->txId_) << endl;
-    cout << "3. Es duplicado? " << (txExiste.buscar(nueva->txId_) ? "SI" : "NO") << endl;
+    cout << "3. Es duplicado? " << (txExiste.buscar(nueva->txId_) != nullptr ? "SI" : "NO") << endl;
     if (encolarSiNoDuplicada(mempool2, nueva))
         cout << "4. Encolada en la mempool (" << mempool2.tamanoActual() << "/"
              << mempool2.capacidadActual() << ")" << endl;
