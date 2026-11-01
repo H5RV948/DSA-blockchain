@@ -37,7 +37,7 @@ struct Bloque {
                   << "  |  hash=" << encabezado.blockHash << std::endl;
         for (int i = 0; i < txList.tamanoActual(); i++) {
             Transaccion* tx = txList.obtenerEn(i);
-            std::cout << "    TX [" << tx->id_ << "] " << tx->evento_
+            std::cout << "    TX [" << tx->txId_ << "] " << tx->evento_
                       << " | " << tx->fecha_ << " " << tx->hora_
                       << " | user=" << tx->user_
                       << " | objeto=" << tx->objeto_
