@@ -65,27 +65,8 @@ bool encolarSiNoDuplicada(Cola<Transaccion*>& mempool, Transaccion* tx) {
     return true;
 }
 
-// Genera un hash simulado de 64 caracteres hex a partir del contenido del bloque
-// (altura + prevHash + txIds). Usa fnv1a() de TablaHash.h en 4 rondas de 16 hex.
-// No es SHA-256: solo sirve para que cada bloque nuevo tenga un hash propio
-// que dependa de su contenido y de su bloque anterior.
-void generarHashBloque(Bloque& b) {
-    // datos = "R|altura|prevHash|txId1|txId2|..."  (R = numero de ronda, se cambia abajo)
-    char datos[TAM_LINEA * 2];
-    snprintf(datos, sizeof(datos), "0|%d|%s", b.encabezado.height, b.encabezado.prevHash);
-    for (int i = 0; i < b.txList.tamanoActual(); i++) {
-        strncat(datos, "|", sizeof(datos) - strlen(datos) - 1);
-        strncat(datos, b.txList.obtenerEn(i)->txId_, sizeof(datos) - strlen(datos) - 1);
-    }
-    for (int ronda = 0; ronda < 4; ronda++) {
-        datos[0] = (char)('0' + ronda);   // cambiar el primer caracter altera todo el resultado
-        snprintf(b.encabezado.blockHash + ronda * 16, 17, "%016llx", fnv1a(datos));
-    }
-}
-
-// Genera el hash del bloque, lo agrega como nuevo tip e indexa sus transacciones
+// Agrega el bloque como nuevo tip e indexa sus transacciones
 void confirmarBloque(ListaEnlazada<Bloque>& cadena, Bloque& b) {
-    generarHashBloque(b);
     for (int i = 0; i < b.txList.tamanoActual(); i++)
         indexarTx(b.txList.obtenerEn(i), b.encabezado.height);
     cadena.agregarInicio(b);
@@ -345,8 +326,8 @@ int main() {
 
     // El bloque candidato se confirma y se vuelve el nuevo tip
     cout << endl << "Bloque candidato confirmado, indexado y agregado con agregarInicio():" << endl;
-    confirmarBloque(cadena, candidato);   // aqui se le genera su hash
     candidato.imprimir();
+    confirmarBloque(cadena, candidato);
     cout << "Bloques en la cadena: " << cadena.tamanoActual()
          << " | Nuevo tip: #" << cadena.obtenerEn(0).encabezado.height
          << " | txIds indexados: " << txExiste.tamano() << endl;
