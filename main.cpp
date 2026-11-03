@@ -241,16 +241,12 @@ int main() {
     Cola<Transaccion*>    mempool(CAPACIDAD_MEMPOOL);  // transacciones pendientes
     DArray<Transaccion*>  transacciones;               // duena de todas las Transaccion*
 
-    if (!demoCarga(cadena, indices, transacciones))
-        return 1;
+    demoCarga(cadena, indices, transacciones);
     demoDuplicados(mempool, indices, transacciones);
     demoConsulta(cadena, indices, transacciones);
     demoFlujoCompleto(cadena, mempool, indices, transacciones);
 
-    titulo("METRICA");
-    cout << indices.txLedger.tamano() << " transacciones indexadas de "
-         << cadena.tamanoActual() << " bloques, consulta O(1) promedio" << endl;
-
+    cout << endl;
     // Unico lugar donde se liberan las transacciones
     for (int i = 0; i < transacciones.tamanoActual(); i++)
         delete transacciones.obtenerEn(i);
