@@ -1,49 +1,46 @@
 #pragma once
+#include <iostream>
 #include "DArray.h"
 #include "Transaccion.h"
 #include "EncabezadoBloque.h"
-#include <iostream>
 
+// ============================================================
+// Bloque.h
+// Un bloque = encabezado (altura, hashes) + lista de transacciones.
+//
+// El bloque guarda PUNTEROS a transacciones y NO es dueno de ellas:
+// nunca hace delete. Las libera quien las creo (ver main.cpp).
+// ============================================================
 
 struct Bloque {
-
     EncabezadoBloque     encabezado;
-    DArray<Transaccion*> txList;    // punteros, no copias
+    DArray<Transaccion*> txList;
 
-
-    // Constructor
-    Bloque() {
-  
-    }
-
+    Bloque() {}
     explicit Bloque(const EncabezadoBloque& enc) : encabezado(enc) {}
 
- 
+    // Agrega una transaccion y mantiene txCount sincronizado
     void agregarTx(Transaccion* tx) {
         txList.agregar(tx);
         encabezado.txCount = txList.tamanoActual();
     }
 
+    int numTx() const { return txList.tamanoActual(); }
 
-    bool esValido() const {
-        return encabezado.txCount > 0;
-    }
+    // i-esima transaccion del bloque (0 <= i < numTx())
+    Transaccion* obtenerTx(int i) const { return txList.obtenerEn(i); }
 
+    // Validacion simulada de la Entrega 2: valido si tiene transacciones
+    bool esValido() const { return encabezado.txCount > 0; }
 
     void imprimir() const {
         std::cout << "BLOQUE #" << encabezado.height
                   << "  |  tx=" << encabezado.txCount
                   << "  |  prev=" << encabezado.prevHash
                   << "  |  hash=" << encabezado.blockHash << std::endl;
-        for (int i = 0; i < txList.tamanoActual(); i++) {
-            Transaccion* tx = txList.obtenerEn(i);
-            std::cout << "    TX [" << tx->txId_ << "] " << tx->evento_
-                      << " | " << tx->fecha_ << " " << tx->hora_
-                      << " | user=" << tx->user_
-                      << " | objeto=" << tx->objeto_
-                      << " | estado=" << tx->estado_
-                      << " | cmd=\"" << tx->comando_ << "\""
-                      << " | priv=" << tx->privilegio_ << std::endl;
+        for (int i = 0; i < numTx(); i++) {
+            std::cout << "    ";
+            obtenerTx(i)->imprimir();
         }
     }
 };
