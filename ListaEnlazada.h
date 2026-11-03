@@ -22,7 +22,7 @@ class ListaEnlazada
 {
 private:
     node<T> *head;
-    node<T> *tail;
+ //   node<T> *tail;
     int size;
     void vaciar();
     void copiar(const ListaEnlazada<T> &otra);
