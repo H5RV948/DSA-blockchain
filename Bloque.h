@@ -37,6 +37,7 @@ struct Bloque {
         std::cout << "BLOQUE #" << encabezado.height
                   << "  |  tx=" << encabezado.txCount
                   << "  |  prev=" << encabezado.prevHash
+                  << "  |  merkle=" << encabezado.merkleRoot
                   << "  |  hash=" << encabezado.blockHash << std::endl;
         for (int i = 0; i < numTx(); i++) {
             std::cout << "    ";
