@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cstring>
-#include <ctime>     // time(): hora actual para transacciones nuevas
+#include <ctime>    
 #include "DArray.h"
 #include "Transaccion.h"
 #include "Bloque.h"
