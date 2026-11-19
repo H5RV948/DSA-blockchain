@@ -15,7 +15,6 @@
 using namespace std;
 
 const char* ARCHIVO_NDJSON    = "transacciones.ndjson";
-const char* ARCHIVO_SALIDA    = "cadena_e4.ndjson";       // cadena guardada con merkle_root y block_hash
 const int   CAPACIDAD_MEMPOOL = 5;
 const char* NODO_LOCAL        = "NOD001";   // nodo de auditoria que corre este programa
 
@@ -100,14 +99,6 @@ void confirmarBloque(ListaEnlazada<Bloque>& cadena, Indices& indices, Bloque& b)
     sellarBloque(b, cadena);
     indices.indexarBloque(b);
     cadena.agregarInicio(b);
-}
-
-// Junta punteros a los bloques en orden genesis -> tip (la lista va del tip al genesis)
-void bloquesEnOrden(ListaEnlazada<Bloque>& cadena, DArray<Bloque*>& salida) {
-    DArray<Bloque*> alReves;
-    cadena.paraCada([&](Bloque& b) { alReves.agregar(&b); });
-    for (int i = alReves.tamanoActual() - 1; i >= 0; i--)
-        salida.agregar(alReves.obtenerEn(i));
 }
 
 // Entrega 4: recalcula el merkleRoot del bloque y lo compara con el del encabezado.
@@ -250,120 +241,56 @@ void demoFlujoCompleto(ListaEnlazada<Bloque>& cadena, Cola<Transaccion*>& mempoo
 // ══ Entrega 4 ══════════════════════════════════════════════
 
 // ── E4-2.1 Carga con calculo de merkleRoot y blockHash ─────
-// Los hashes ya se calcularon dentro de cargarNDJSON (sellarBloque):
+// Los hashes ya se calcularon al cargar (sellarBloque en CargadorNDJSON.h):
 // 1o calcularMerkleRoot, 2o calcularBlockHash. Aqui se imprimen.
 void demoHashesCarga(ListaEnlazada<Bloque>& cadena) {
     titulo("[E4] 2.1 CARGA: merkleRoot y blockHash de cada bloque");
-    DArray<Bloque*> bloques;
-    bloquesEnOrden(cadena, bloques);
-    for (int i = 0; i < bloques.tamanoActual(); i++) {
-        const EncabezadoBloque& enc = bloques.obtenerEn(i)->encabezado;
-        cout << "Bloque #" << enc.height
-             << "  txs=" << enc.txCount
-             << "  merkleRoot=" << enc.merkleRoot
-             << "  blockHash=" << enc.blockHash << endl;
-    }
-
-    // Determinismo: calcular dos veces el mismo bloque da el mismo resultado
-    Bloque* primero = bloques.obtenerEn(0);
-    char r1[TAM_HASH], r2[TAM_HASH];
-    calcularMerkleRoot(*primero, r1);
-    calcularMerkleRoot(*primero, r2);
-    cout << endl << "Determinismo (bloque #" << primero->encabezado.height << "): "
-         << r1 << " vs " << r2 << " -> " << (strcmp(r1, r2) == 0 ? "IGUALES" : "DISTINTOS") << endl;
-
-    // Encadenamiento: el prevHash de cada bloque es el blockHash del anterior
-    bool encadenada = true;
-    for (int i = 1; i < bloques.tamanoActual(); i++)
-        if (strcmp(bloques.obtenerEn(i)->encabezado.prevHash,
-                   bloques.obtenerEn(i - 1)->encabezado.blockHash) != 0)
-            encadenada = false;
-    cout << "Encadenamiento prevHash -> blockHash: " << (encadenada ? "CORRECTO" : "ROTO") << endl;
+    cadena.paraCada([](Bloque& b) {
+        cout << "Bloque #" << b.encabezado.height
+             << "  txs=" << b.encabezado.txCount
+             << "  merkleRoot=" << b.encabezado.merkleRoot
+             << "  blockHash=" << b.encabezado.blockHash << endl;
+    });
 }
 
-// ── E4-2.2 Verificacion de integridad: bloque sin modificar ─
+// ── E4-2.2 Verificacion de integridad: bloques sin modificar ─
 void demoVerificacion(ListaEnlazada<Bloque>& cadena) {
     titulo("[E4] 2.2 VERIFICACION: verificarBloque() sobre bloques sin modificar");
-    DArray<Bloque*> bloques;
-    bloquesEnOrden(cadena, bloques);
-    int integros = 0;
-    for (int i = 0; i < bloques.tamanoActual(); i++)
-        if (verificarBloque(*bloques.obtenerEn(i)))
-            integros++;
-    cout << endl << "Bloques integros: " << integros << "/" << bloques.tamanoActual() << endl;
+    cadena.paraCada([](Bloque& b) { verificarBloque(b); });
 }
 
 // ── E4-2.3 Deteccion de manipulacion ────────────────────────
-// Un "insider" cambia en memoria el resultado de un evento ya confirmado:
-// un acceso que fue DENEGADO pasa a decir OTORGADO (o al reves) para
-// ocultar / fabricar evidencia. El encabezado del bloque no se toca.
+// Se cambia EN MEMORIA el resultado (estado) de una transaccion ya confirmada.
+// El encabezado del bloque no se toca.
 void demoManipulacion(ListaEnlazada<Bloque>& cadena) {
     titulo("[E4] 2.3 DETECCION DE MANIPULACION en un bloque confirmado");
 
-    // Se busca la primera transaccion DENEGADA de la cadena (si no hay, la primera del bloque #1)
-    Bloque* victima = nullptr;
-    Transaccion* tx = nullptr;
-    DArray<Bloque*> bloques;
-    bloquesEnOrden(cadena, bloques);
-    for (int i = 0; i < bloques.tamanoActual() && tx == nullptr; i++)
-        for (int j = 0; j < bloques.obtenerEn(i)->numTx() && tx == nullptr; j++)
-            if (strcmp(bloques.obtenerEn(i)->obtenerTx(j)->estado_, "DENEGADO") == 0) {
-                victima = bloques.obtenerEn(i);
-                tx = victima->obtenerTx(j);
-            }
-    if (tx == nullptr) {
-        victima = bloques.obtenerEn(bloques.tamanoActual() > 1 ? 1 : 0);
-        tx = victima->obtenerTx(0);
-    }
+    Bloque* bloque = buscarBloque(cadena, 1);
+    Transaccion* tx = bloque->obtenerTx(0);   // login de mlopez, DENEGADO
+    cout << "Transaccion original en el bloque #1:" << endl << "  ";
+    tx->imprimir();
 
     char blockHashAntes[TAM_HASH];
-    strcpy(blockHashAntes, victima->encabezado.blockHash);
+    strcpy(blockHashAntes, bloque->encabezado.blockHash);
 
-    cout << "Transaccion original en el bloque #" << victima->encabezado.height << ":" << endl << "  ";
-    tx->imprimir();
-
-    // 1. Guardar el valor original y modificar en memoria (no en el archivo)
-    char* estadoOriginal = tx->estado_;
-    const char* falso = (strcmp(estadoOriginal, "DENEGADO") == 0) ? "OTORGADO" : "DENEGADO";
-    tx->estado_ = new char[strlen(falso) + 1];
-    strcpy(tx->estado_, falso);
-
-    cout << endl << "1. Manipulacion: estado " << estadoOriginal << " -> " << tx->estado_ << endl << "  ";
-    tx->imprimir();
-    cout << "   blockHash del encabezado sigue igual: " << victima->encabezado.blockHash
-         << (strcmp(blockHashAntes, victima->encabezado.blockHash) == 0 ? " (sin cambios)" : " (CAMBIO)") << endl;
+    // 1. Guardar el valor original y cambiarlo en memoria (no en el archivo)
+    char* original = tx->estado_;
+    tx->estado_ = new char[strlen("OTORGADO") + 1];
+    strcpy(tx->estado_, "OTORGADO");
+    cout << endl << "1. Manipulacion: estado " << original << " -> " << tx->estado_ << endl;
+    cout << "   El encabezado no cambio: blockHash " << bloque->encabezado.blockHash
+         << (strcmp(blockHashAntes, bloque->encabezado.blockHash) == 0 ? " (igual que antes)" : " (CAMBIO)") << endl;
 
     cout << "2. verificarBloque sobre el bloque manipulado:" << endl;
-    bool r1 = verificarBloque(*victima);
-    cout << "   -> retorna " << (r1 ? "true" : "false") << endl;
+    bool resultado = verificarBloque(*bloque);
+    cout << "   -> retorna " << (resultado ? "true" : "false") << endl;
 
     // 3. Restaurar el valor original
     delete[] tx->estado_;
-    tx->estado_ = estadoOriginal;
+    tx->estado_ = original;
     cout << "3. Restauracion: estado vuelve a " << tx->estado_ << endl;
-    bool r2 = verificarBloque(*victima);
-    cout << "   -> retorna " << (r2 ? "true" : "false") << endl;
-}
-
-// ── Extra: guardar la cadena con el encabezado completo ────
-void demoGuardar(ListaEnlazada<Bloque>& cadena) {
-    titulo("[E4] EXTRA: guardar la cadena con merkle_root y block_hash");
-    if (!guardarNDJSON(ARCHIVO_SALIDA, cadena)) return;
-    cout << "Cadena guardada en " << ARCHIVO_SALIDA << endl;
-
-    // Se vuelve a cargar para comprobar que el merkle_root guardado coincide
-    ListaEnlazada<Bloque> cadena2;
-    Indices               indices2;
-    DArray<Transaccion*>  transacciones2;
-    if (cargarNDJSON(ARCHIVO_SALIDA, cadena2, indices2, transacciones2)) {
-        bool iguales = cadena2.tamanoActual() == cadena.tamanoActual() &&
-                       strcmp(cadena2.obtenerEn(0).encabezado.blockHash,
-                              cadena.obtenerEn(0).encabezado.blockHash) == 0;
-        cout << "Recarga: " << cadena2.tamanoActual() << " bloques, blockHash del tip "
-             << (iguales ? "COINCIDE" : "NO COINCIDE") << endl;
-    }
-    for (int i = 0; i < transacciones2.tamanoActual(); i++)
-        delete transacciones2.obtenerEn(i);
+    resultado = verificarBloque(*bloque);
+    cout << "   -> retorna " << (resultado ? "true" : "false") << endl;
 }
 
 
@@ -385,7 +312,6 @@ int main() {
     demoFlujoCompleto(cadena, mempool, indices, transacciones);
     demoVerificacion(cadena);                               // E4-2.2
     demoManipulacion(cadena);                               // E4-2.3
-    demoGuardar(cadena);                                    // extra (obligatorio en E5)
 
     cout << endl;
     // Unico lugar donde se liberan las transacciones

@@ -30,9 +30,8 @@ struct EncabezadoBloque {
         strcpy(merkleRoot, "0000000000000000");
     }
 
-    // Constructor completo. Si los hashes recibidos son mas largos
-    // (por ejemplo los de 64 chars del NDJSON original) se truncan a 16.
-    // merkleRoot empieza en ceros: se calcula al cerrar/confirmar el bloque.
+    // Constructor completo. merkleRoot empieza en ceros:
+    // se calcula al cerrar/confirmar el bloque.
     EncabezadoBloque(int h, int txc, const char* prev, const char* own)
         : height(h), txCount(txc) {
         copiarHash(prevHash, prev);
